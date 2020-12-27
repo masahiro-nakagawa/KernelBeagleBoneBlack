@@ -1,0 +1,75 @@
+name: bb-kernel
+version: 44  
+summary: generic linux kernel
+description: The generic Ubuntu kernel package as a snap
+grade: stable
+confinement: strict
+type: kernel
+architectures:
+  - build-on: amd64
+    run-on: armhf
+
+
+parts:
+  kernel:
+    plugin: kernel
+    #source: https://git.launchpad.net/~ubuntu-kernel/ubuntu/+source/linux/+git/focal
+    source: https://git.launchpad.net/~ubuntu-kernel/ubuntu/+source/linux/+git/bionic
+    source-type: git
+    #source-tag: Ubuntu-5.4.0-51.56
+    kconfigflavour: generic
+    kconfigs:
+      - CONFIG_DEBUG_INFO=n
+      - CONFIG_RD_BZIP2=y
+      - CONFIG_RD_LZMA=y
+      - CONFIG_RD_XZ=y
+      - CONFIG_REGULATOR=y
+      - CONFIG_RFKILL=y
+      - CONFIG_RFKILL_INPUT=y
+      - CONFIG_RFKILL_REGULATOR=m
+      - CONFIG_RFKILL_GPIO=m
+      - CONFIG_RAW_DRIVER=m
+      - CONFIG_FANOTIFY=y
+      - CONFIG_AUTOFS4_FS=y
+# CONFIG_USB_FUNCTIONFS is not set
+# CONFIG_USB_ZERO is not set
+# CONFIG_USB_MASS_STORAGE is not set
+# CONFIG_USB_G_MULTI_CDC is not set
+      - CONFIG_CONFIGFS_FS=y
+      - CONFIG_KEYS=y
+      - CONFIG_ENCRYPTED_KEYS=y
+      - CONFIG_BLK_DEV_LOOP=y
+      - CONFIG_BLK_DEV_LOOP_MIN_COUNT=256
+      - CONFIG_SQUASHFS=y
+      - CONFIG_SQUASHFS_FILE_DIRECT=y
+      - CONFIG_SQUASHFS_DECOMP_SINGLE=y
+      - CONFIG_SQUASHFS_XATTR=y
+      - CONFIG_SQUASHFS_ZLIB=y
+      - CONFIG_SQUASHFS_LZ4=y
+      - CONFIG_SQUASHFS_LZO=y
+      - CONFIG_SQUASHFS_XZ=y
+    override-build: |
+      cp debian/scripts/retpoline-extract-one \
+        $SNAPCRAFT_PART_BUILD/scripts/ubuntu-retpoline-extract-one
+      snapcraftctl build
+    kernel-with-firmware: false
+    kernel-initrd-modules:
+     - nls_iso8859-1
+     - usb-storage
+
+  firmware:
+    plugin: nil
+    stage-packages:
+      - linux-firmware
+    organize:
+      lib/firmware: firmware
+    prime:
+      - -usr
+      - -lib
+    build-packages:
+      - cpio
+      - libssl-dev
+   #   - build-essential
+   #   - flex
+   #   - bison
+
